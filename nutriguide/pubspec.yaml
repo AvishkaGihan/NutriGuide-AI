@@ -1,0 +1,65 @@
+name: nutriguide
+description: NutriGuide AI - Mobile-first nutrition assistant.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # --- State Management ---
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # --- Local Storage & Caching ---
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^9.2.2
+
+  # --- Networking & API ---
+  http: ^1.2.2
+  connectivity_plus: ^6.0.5
+  cached_network_image: ^3.4.1
+
+  # --- Camera & Media ---
+  image_picker: ^1.1.2
+  camera: ^0.11.0+2
+  permission_handler: ^11.3.1
+
+  # --- Utilities ---
+  intl: ^0.20.0
+  uuid: ^4.5.1
+  google_fonts: ^6.2.1
+  flutter_dotenv: ^5.1.0
+  jwt_decoder: ^2.0.1
+  # Path provider often needed for Hive/File storage
+  path_provider: ^2.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # --- Code Generation ---
+  build_runner: ^2.4.11
+  riverpod_generator: ^2.4.2
+  custom_lint: ^0.7.6
+  riverpod_lint: ^2.3.10
+
+  # --- Testing ---
+  mockito: ^5.4.4
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  # Asset configuration
+  assets:
+    - assets/.env
+    - assets/images/
