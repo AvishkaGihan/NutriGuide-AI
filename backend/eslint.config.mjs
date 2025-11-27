@@ -9,5 +9,8 @@ export default [
       globals: globals.node,
       sourceType: "module",
     },
+    rules: {
+      "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    },
   },
 ];
