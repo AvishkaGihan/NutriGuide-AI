@@ -88,7 +88,3 @@ API_BASE_URL=http://10.0.2.2:3000/api/v1
 ## 📄 License
 
 This project is licensed under the [ISC License](./LICENSE).
-
-```
-
-```
