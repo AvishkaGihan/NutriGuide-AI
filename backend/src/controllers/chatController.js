@@ -1,0 +1,124 @@
+import ChatMessageModel from "../models/ChatMessage.js";
+import UserModel from "../models/User.js";
+import GeminiService from "../services/geminiService.js";
+import RecipeModel from "../models/Recipe.js";
+import { asyncHandler } from "../utils/errorHandler.js";
+
+/**
+ * Send a message and stream the response (SSE)
+ * POST /api/v1/chat/stream
+ */
+export const streamMessage = asyncHandler(async (req, res) => {
+  const { message, conversationId } = req.body;
+  const userId = req.user.id;
+
+  // 1. Setup SSE Headers
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  try {
+    // 2. Save User Message
+    await ChatMessageModel.create({
+      userId,
+      role: "user",
+      content: message,
+      conversationId,
+    });
+
+    // 3. Fetch Context (User Profile & Recent History)
+    const userProfile = await UserModel.getFullProfile(userId);
+    // In a real app, you'd fetch previous messages to pass as context
+    // const history = await ChatMessageModel.findByConversationId(conversationId);
+
+    // 4. Call Gemini (Mocking streaming for MVP structure, or use Gemini stream API)
+    // For this MVP, we generate the full response and simulate streaming chunks
+    // to compatible with the architecture.
+    let aiResponseText = "";
+    let recipeData = null;
+
+    // Detect if this looks like a recipe request vs general chat
+    const isRecipeRequest = /recipe|cook|dinner|lunch|breakfast/i.test(message);
+
+    if (isRecipeRequest) {
+      // Generate structured recipe
+      res.write(
+        `event: status\ndata: ${JSON.stringify({
+          text: "Searching recipes...",
+        })}\n\n`
+      );
+
+      const recipe = await GeminiService.generateRecipe({
+        userProfile,
+        ingredients: null, // No ingredients provided in text chat usually
+        promptType: message,
+      });
+
+      // Save Recipe to DB
+      const savedRecipe = await RecipeModel.create({
+        ...recipe,
+        user_id: userId,
+      });
+
+      recipeData = savedRecipe;
+      aiResponseText = `Here is a recipe for ${recipe.name}.`;
+    } else {
+      // General chat interaction (Mocking logic here, replace with Gemini Chat session)
+      res.write(
+        `event: status\ndata: ${JSON.stringify({ text: "Thinking..." })}\n\n`
+      );
+      aiResponseText =
+        "I can help you with that! What ingredients do you have?";
+    }
+
+    // 5. Stream Response to Client
+    // Simulate typing effect
+    const words = aiResponseText.split(" ");
+    for (const word of words) {
+      res.write(
+        `event: token\ndata: ${JSON.stringify({ text: word + " " })}\n\n`
+      );
+      await new Promise((r) => setTimeout(r, 50)); // Artificial delay for 'typing' feel
+    }
+
+    // 6. Save AI Response to DB
+    await ChatMessageModel.create({
+      userId,
+      role: "assistant",
+      content: aiResponseText,
+      conversationId,
+      recipeId: recipeData ? recipeData.id : null,
+    });
+
+    // 7. Final Event with Data
+    res.write(
+      `event: complete\ndata: ${JSON.stringify({
+        conversationId,
+        recipe: recipeData,
+      })}\n\n`
+    );
+
+    res.end();
+  } catch (error) {
+    console.error("Chat Stream Error:", error);
+    res.write(
+      `event: error\ndata: ${JSON.stringify({
+        message: "Failed to process request",
+      })}\n\n`
+    );
+    res.end();
+  }
+});
+
+/**
+ * Get Chat History
+ * GET /api/v1/chat/history
+ */
+export const getHistory = asyncHandler(async (req, res) => {
+  const history = await ChatMessageModel.findByUserId(req.user.id);
+
+  res.status(200).json({
+    success: true,
+    data: history,
+  });
+});
