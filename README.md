@@ -28,7 +28,7 @@ NutriGuide AI is a cross-platform mobile application that transforms meal planni
 - [Node.js](https://nodejs.org/) (v20 LTS or higher)
 - [Flutter SDK](https://flutter.dev/docs/get-started/install) (v3.24 or higher)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- A [Google Gemini API Key](https://aistudio.google.com/)
+- [Google Gemini API Key](https://aistudio.google.com/)
 
 ## ⚡ Quick Start
 
