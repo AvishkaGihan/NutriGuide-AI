@@ -1,9 +1,47 @@
-node_modules/
-.env
-build/
-.dart_tool/
-.idea/
-*.iml
+# --- General ---
 .DS_Store
-coverage/
 .vscode/
+.idea/
+*.log
+*.swo
+*.swp
+
+# --- Backend (Node.js) ---
+backend/node_modules/
+backend/npm-debug.log
+backend/coverage/
+backend/.env
+backend/.env.test
+backend/dist/
+
+# --- Frontend (Flutter/Dart) ---
+nutriguide/.dart_tool/
+nutriguide/.packages
+nutriguide/.pub/
+nutriguide/build/
+nutriguide/flutter_export.json
+
+# Flutter Assets (Secrets)
+nutriguide/assets/.env
+
+# Android
+nutriguide/android/gradle/
+nutriguide/android/.gradle/
+nutriguide/android/app/libs/
+nutriguide/android/key.properties
+nutriguide/android/local.properties
+
+# iOS
+nutriguide/ios/Flutter/App.framework
+nutriguide/ios/Flutter/Flutter.framework
+nutriguide/ios/Pods/
+nutriguide/ios/.symlinks/
+nutriguide/ios/Podfile.lock
+
+# Web
+nutriguide/web/icons/
+nutriguide/web/favicon.png
+
+# --- Database ---
+# Ignore local postgres data if mapped locally outside docker volumes
+pgdata/
