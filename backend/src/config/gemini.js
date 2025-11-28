@@ -32,10 +32,10 @@ const safetySettings = [
 
 /**
  * Get a specific Gemini Model instance.
- * * @param {string} modelName - The model version (default: gemini-1.5-flash)
+ * * @param {string} modelName - The model version (default: gemini-2.5-flash)
  * @returns {import('@google/generative-ai').GenerativeModel}
  */
-export const getGeminiModel = (modelName = "gemini-1.5-flash") => {
+export const getGeminiModel = (modelName = "gemini-2.5-flash") => {
   return genAI.getGenerativeModel({
     model: modelName,
     safetySettings: safetySettings,
@@ -47,17 +47,17 @@ export const getGeminiModel = (modelName = "gemini-1.5-flash") => {
  * Usually the same model, but allows us to switch specific versions easily.
  */
 export const getVisionModel = () => {
-  // gemini-1.5-flash is highly efficient for image analysis
-  return getGeminiModel("gemini-1.5-flash");
+  // gemini-2.5-flash is highly efficient for image analysis
+  return getGeminiModel("gemini-2.5-flash");
 };
 
 /**
  * Get the reasoning-capable model (for complex nutrition queries).
  */
 export const getChatModel = () => {
-  // gemini-1.5-pro has better reasoning capabilities for complex diet questions
+  // gemini-2.5-pro has better reasoning capabilities for complex diet questions
   // Switching to 'flash' can save costs if 'pro' is too expensive
-  return getGeminiModel("gemini-1.5-pro");
+  return getGeminiModel("gemini-2.5-pro");
 };
 
 export default genAI;
