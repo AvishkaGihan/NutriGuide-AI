@@ -20,4 +20,14 @@ export default [
       ],
     },
   },
+  {
+    files: ["tests/**/*.test.js", "**/*.test.js", "**/*.spec.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+      sourceType: "module",
+    },
+  },
 ];
