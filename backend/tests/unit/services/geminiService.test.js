@@ -17,9 +17,8 @@ const { default: GeminiService } = await import(
   "../../../src/services/geminiService.js"
 );
 const { AppError } = await import("../../../src/utils/errorHandler.js");
-const { getChatModel, getVisionModel } = await import(
-  "../../../src/config/gemini.js"
-);
+const { getChatModel: _getChatModel, getVisionModel: _getVisionModel } =
+  await import("../../../src/config/gemini.js");
 
 describe("GeminiService", () => {
   beforeEach(() => {

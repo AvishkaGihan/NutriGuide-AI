@@ -30,7 +30,7 @@ await jest.unstable_mockModule("../../../src/services/jwtService.js", () => ({
 const authController = await import(
   "../../../src/controllers/authController.js"
 );
-const UserModel = (await import("../../../src/models/User.js")).default;
+const _UserModel = (await import("../../../src/models/User.js")).default;
 
 describe("AuthController", () => {
   let req, res, next;
