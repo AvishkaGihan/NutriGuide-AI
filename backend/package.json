@@ -8,8 +8,8 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "lint": "eslint src/**/*.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "migrate": "echo 'Run migration commands here via sequelize/knex/typeorm'"
   },
   "keywords": [
