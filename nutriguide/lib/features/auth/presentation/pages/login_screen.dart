@@ -28,7 +28,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to Auth State changes for Error handling or Navigation
+    // Listen to Auth State changes for Error handling
     ref.listen(authProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stack) {
@@ -37,12 +37,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 content: Text(error.toString()),
                 backgroundColor: AppColors.error),
           );
-        },
-        data: (user) {
-          if (user != null) {
-            // Navigate to Home (Route management to be handled in AppWidget)
-            // Navigator.of(context).pushReplacementNamed('/home');
-          }
         },
       );
     });

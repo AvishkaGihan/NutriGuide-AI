@@ -6,50 +6,49 @@ import 'package:nutriguide/features/auth/feature_auth.dart';
 import 'package:nutriguide/features/chat/feature_chat.dart';
 import 'package:nutriguide/features/photos/feature_photos.dart';
 import 'package:nutriguide/features/profile/feature_profile.dart';
-import 'package:nutriguide/core/services/auth_service.dart';
-import 'package:nutriguide/core/services/api_service.dart';
-import 'package:nutriguide/core/services/secure_storage.dart';
-import 'package:nutriguide/core/services/logging_service.dart';
-
-// Create a FutureProvider to check initial auth state
-final initialAuthProvider = FutureProvider<bool>((ref) async {
-  final authService = AuthService(
-    apiService: ApiService(
-      secureStorage: SecureStorageService(),
-      logger: LoggingService.instance,
-    ),
-    secureStorage: SecureStorageService(),
-  );
-  return authService.isLoggedIn();
-});
 
 class AppWidget extends ConsumerWidget {
   const AppWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(initialAuthProvider);
+    // Watch the auth provider to detect login/logout state changes
+    final authState = ref.watch(authProvider);
+    // Watch the initial auth check to show loading during startup
+    final checkInitial = ref.watch(checkInitialAuthProvider);
 
     return MaterialApp(
       title: 'NutriGuide AI',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme, // Applied Vitality Green theme
-
-      // Handle Initial Route based on Auth Check
-      home: authState.when(
-        data: (isLoggedIn) {
-          // If logged in, go to Home (Chat), else Login
-          // Note: In a real app with deep linking, we'd use onGenerateInitialRoutes
-          return isLoggedIn ? const _MainTabScaffold() : const LoginScreen();
-        },
-        loading: () => const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
-        error: (err, stack) =>
-            const LoginScreen(), // Fallback to login on error
-      ),
-
+      theme: AppTheme.lightTheme,
+      home: _buildHome(authState, checkInitial),
       onGenerateRoute: Routes.generateRoute,
+    );
+  }
+
+  Widget _buildHome(
+      AsyncValue<User?> authState, AsyncValue<User?> checkInitial) {
+    // During initial load, show loading spinner
+    if (checkInitial.isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // After initial check, use authState to determine what to show
+    return authState.when(
+      data: (user) {
+        if (user != null) {
+          return const _MainTabScaffold();
+        }
+        return const LoginScreen();
+      },
+      loading: () {
+        return const LoginScreen();
+      },
+      error: (err, stack) {
+        return const LoginScreen();
+      },
     );
   }
 }

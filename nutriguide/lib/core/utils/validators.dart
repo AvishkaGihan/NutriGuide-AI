@@ -30,7 +30,7 @@ class Validators {
       return 'Password must be at least 8 characters';
     }
     if (!_passwordRegex.hasMatch(value)) {
-      return 'Must contain uppercase, number, and special char';
+      return 'Must contain uppercase, lowercase, number, and special char';
     }
     return null;
   }
