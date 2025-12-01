@@ -20,26 +20,45 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (text.isNotEmpty) {
       _controller.clear();
       ref.read(chatProvider.notifier).sendMessage(text);
-      _scrollToBottom();
+      // Delay scroll to give Flutter time to render the new message
+      Future.delayed(const Duration(milliseconds: 800), _scrollToBottom);
     }
   }
 
   void _scrollToBottom() {
-    // Small delay to allow list to render
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Scroll to bottom when entering the chat screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider);
+
+    // Listen to chat state changes and scroll to bottom after frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -57,8 +76,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 if (messages.isEmpty) {
                   return _buildEmptyState();
                 }
-
-                // Auto-scroll logic listener could go here
 
                 return ListView.builder(
                   controller: _scrollController,

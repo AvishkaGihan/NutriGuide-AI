@@ -3,6 +3,37 @@ import { AppError } from "../utils/errorHandler.js";
 
 class GeminiService {
   /**
+   * Generate a chat response for general nutrition/cooking questions.
+   * Uses Gemini to provide conversational, helpful responses.
+   */
+  static async generateChatResponse({ userProfile, message }) {
+    const model = getChatModel();
+
+    const basePrompt = `
+      You are NutriGuide, a helpful nutritionist and cooking assistant.
+      User Profile:
+      - Goals: ${userProfile.dietary_goals?.join(", ") || "General Wellness"}
+      - Restrictions: ${userProfile.restrictions?.join(", ") || "None"}
+      - Allergies: ${userProfile.allergies?.join(", ") || "None"}
+
+      Answer the user's question helpfully and concisely (1-2 sentences max).
+      Provide practical advice related to nutrition, recipes, ingredients, or healthy eating.
+    `;
+
+    try {
+      const result = await model.generateContent(
+        `${basePrompt}\n\nUser: ${message}`
+      );
+      const response = await result.response;
+      const text = response.text();
+      return text;
+    } catch (error) {
+      console.error("Gemini Chat Response Error:", error);
+      throw new AppError("Failed to generate response. Please try again.", 502);
+    }
+  }
+
+  /**
    * Generate a recipe based on chat context or ingredients.
    * Enforces JSON output for consistent app rendering.
    */

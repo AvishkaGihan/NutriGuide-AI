@@ -32,6 +32,7 @@ class ChatRepositoryImpl implements ChatRepository {
       // 2. Stream the AI response
       String accumulatedText = '';
       Recipe? recipe;
+      String? finalMessageId; // Track the backend-generated message ID
 
       final stream = _remoteDataSource.streamMessage(message,
           conversationId: conversationId);
@@ -43,20 +44,26 @@ class ChatRepositoryImpl implements ChatRepository {
           yield Right(ChatStreamResult(token: event));
         } else if (event is Recipe) {
           recipe = event;
+        } else if (event is CompleteMessage) {
+          // Completion event from backend - use exact values from backend
+          accumulatedText = event.content;
+          finalMessageId = event.id;
+          if (event.recipe != null) {
+            recipe = event.recipe as Recipe;
+          }
+          // IMPORTANT: Don't save to local cache here - it's already saved in the DB
+          // Just use the backend's final message
         }
       }
 
-      // 3. Finalize AI Message
+      // 3. Finalize AI Message - use backend ID if available
       final aiMsg = ChatMessage(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: finalMessageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
         role: MessageRole.assistant,
         content: accumulatedText,
         timestamp: DateTime.now(),
         recipe: recipe,
       );
-
-      // Save complete AI message to cache
-      await _saveMessageLocally(aiMsg);
 
       // Yield Final completion event
       yield Right(ChatStreamResult(message: aiMsg, isDone: true));
@@ -90,20 +97,25 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   Future<void> _saveMessageLocally(ChatMessage message) async {
-    // Basic caching implementation - append to list in Hive
+    // Store only temporary messages (user messages with temp IDs starting with epoch)
+    // Backend-generated messages are fetched from the API later
+    if (message.id.startsWith('temp-') || message.id.length > 15) {
+      // This is a backend message ID or already saved, skip local cache
+      return;
+    }
+
+    // Only cache user messages temporarily for optimistic UI
+    // These will be replaced by backend-generated messages when history is loaded
     final List<dynamic> currentHistory =
         _chatBox.get('history', defaultValue: []) as List<dynamic>;
 
     // Convert entity to model for JSON serialization
-    // In a real app, use a Mapper class. Here we cast/construct manually for brevity.
     final model = ChatMessageModel(
       id: message.id,
       role: message.role,
       content: message.content,
       timestamp: message.timestamp,
-      recipe: message.recipe != null
-          ? message.recipe as dynamic
-          : null, // Handle casting carefully in real app
+      recipe: message.recipe != null ? message.recipe as dynamic : null,
     );
 
     currentHistory.add(model.toJson());

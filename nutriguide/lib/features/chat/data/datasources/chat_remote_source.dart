@@ -7,6 +7,21 @@ import 'package:nutriguide/core/services/secure_storage.dart';
 import 'package:nutriguide/features/chat/data/models/chat_message_model.dart';
 import 'package:nutriguide/features/recipes/data/models/recipe_model.dart';
 
+/// Represents the completion of a stream with the final message content
+class CompleteMessage {
+  final String id;
+  final String content;
+  final String? conversationId;
+  final RecipeModel? recipe;
+
+  CompleteMessage({
+    required this.id,
+    required this.content,
+    this.conversationId,
+    this.recipe,
+  });
+}
+
 abstract class ChatRemoteDataSource {
   /// Stream the AI response. Returns a Stream of partial strings (tokens)
   /// and finally the complete ChatMessageModel or RecipeModel.
@@ -72,6 +87,16 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
             } else if (data['recipe'] != null) {
               // Yield the full recipe at the end if present
               yield RecipeModel.fromJson(data['recipe']);
+            } else if (data['content'] != null && data['id'] != null) {
+              // Complete event with full message content - prevents duplicate message from being replayed
+              yield CompleteMessage(
+                id: data['id'] as String,
+                content: data['content'] as String,
+                conversationId: data['conversationId'] as String?,
+                recipe: data['recipe'] != null
+                    ? RecipeModel.fromJson(data['recipe'])
+                    : null,
+              );
             } else if (data['conversationId'] != null) {
               // Yield metadata if needed, or just ignore
             }

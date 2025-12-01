@@ -35,7 +35,7 @@ export const updateProfile = asyncHandler(async (req, res, _next) => {
     gender,
   } = req.body;
 
-  const updatedProfile = await UserModel.updatePreferences(req.user.id, {
+  await UserModel.updatePreferences(req.user.id, {
     dietary_goals,
     restrictions,
     allergies,
@@ -43,6 +43,9 @@ export const updateProfile = asyncHandler(async (req, res, _next) => {
     age_range,
     gender,
   });
+
+  // Return the full profile (including id and email) after update
+  const updatedProfile = await UserModel.getFullProfile(req.user.id);
 
   res.status(200).json({
     success: true,

@@ -28,7 +28,7 @@ class ChatBubble extends StatelessWidget {
       crossAxisAlignment: align,
       children: [
         Container(
-          margin: const EdgeInsets.only(bottom: 4),
+          margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           constraints:
               BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),

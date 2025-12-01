@@ -31,26 +31,24 @@ export const streamMessage = asyncHandler(async (req, res) => {
     // In a real app, you'd fetch previous messages to pass as context
     // const history = await ChatMessageModel.findByConversationId(conversationId);
 
-    // 4. Call Gemini (Mocking streaming for MVP structure, or use Gemini stream API)
-    // For this MVP, we generate the full response and simulate streaming chunks
-    // to compatible with the architecture.
+    // 4. Generate AI Response using Gemini
     let aiResponseText = "";
     let recipeData = null;
 
-    // Detect if this looks like a recipe request vs general chat
+    // Check if user is asking for a recipe
     const isRecipeRequest = /recipe|cook|dinner|lunch|breakfast/i.test(message);
 
     if (isRecipeRequest) {
-      // Generate structured recipe
+      // Generate structured recipe with Gemini
       res.write(
         `event: status\ndata: ${JSON.stringify({
-          text: "Searching recipes...",
+          text: "Generating recipe...",
         })}\n\n`
       );
 
       const recipe = await GeminiService.generateRecipe({
         userProfile,
-        ingredients: null, // No ingredients provided in text chat usually
+        ingredients: null,
         promptType: message,
       });
 
@@ -63,12 +61,17 @@ export const streamMessage = asyncHandler(async (req, res) => {
       recipeData = savedRecipe;
       aiResponseText = `Here is a recipe for ${recipe.name}.`;
     } else {
-      // General chat interaction (Mocking logic here, replace with Gemini Chat session)
+      // General chat - use Gemini for all questions
       res.write(
-        `event: status\ndata: ${JSON.stringify({ text: "Thinking..." })}\n\n`
+        `event: status\ndata: ${JSON.stringify({
+          text: "Thinking...",
+        })}\n\n`
       );
-      aiResponseText =
-        "I can help you with that! What ingredients do you have?";
+
+      aiResponseText = await GeminiService.generateChatResponse({
+        userProfile,
+        message,
+      });
     }
 
     // 5. Stream Response to Client
@@ -82,7 +85,7 @@ export const streamMessage = asyncHandler(async (req, res) => {
     }
 
     // 6. Save AI Response to DB
-    await ChatMessageModel.create({
+    const savedMessage = await ChatMessageModel.create({
       userId,
       role: "assistant",
       content: aiResponseText,
@@ -90,9 +93,11 @@ export const streamMessage = asyncHandler(async (req, res) => {
       recipeId: recipeData ? recipeData.id : null,
     });
 
-    // 7. Final Event with Data
+    // 7. Final Event with Data - Include the complete message to prevent duplicate from being replayed
     res.write(
       `event: complete\ndata: ${JSON.stringify({
+        id: savedMessage.id,
+        content: aiResponseText,
         conversationId,
         recipe: recipeData,
       })}\n\n`
