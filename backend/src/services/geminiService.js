@@ -110,6 +110,14 @@ class GeminiService {
 
       const recipe = JSON.parse(cleanJson);
 
+      // Validate and fix any zero/invalid time values
+      if (!recipe.prep_time_minutes || recipe.prep_time_minutes <= 0) {
+        recipe.prep_time_minutes = 10; // Default to 10 minutes
+      }
+      if (!recipe.cook_time_minutes || recipe.cook_time_minutes <= 0) {
+        recipe.cook_time_minutes = 20; // Default to 20 minutes
+      }
+
       // Generate a food image URL using Foodish API with recipe-specific keyword
       // This provides actual food photos that match the recipe
       if (!recipe.image_url) {
