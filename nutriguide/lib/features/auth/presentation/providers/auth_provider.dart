@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:nutriguide/core/services/api_service.dart';
 import 'package:nutriguide/core/services/secure_storage.dart';
 import 'package:nutriguide/features/auth/data/datasources/auth_remote_source.dart';
@@ -6,6 +7,10 @@ import 'package:nutriguide/features/auth/data/repositories/auth_repository_impl.
 import 'package:nutriguide/features/auth/domain/entities/user.dart';
 import 'package:nutriguide/features/auth/domain/repositories/auth_repository.dart';
 import 'package:nutriguide/core/services/logging_service.dart';
+import 'package:nutriguide/features/chat/presentation/providers/chat_provider.dart';
+import 'package:nutriguide/features/profile/presentation/providers/profile_provider.dart';
+import 'package:nutriguide/features/recipes/presentation/providers/recipe_provider.dart';
+import 'package:nutriguide/features/photos/presentation/providers/camera_provider.dart';
 
 // --- Dependency Injection ---
 
@@ -122,10 +127,49 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   Future<void> logout() async {
     LoggingService.instance.info('Logout called');
     state = const AsyncValue.loading();
-    await _repository.logout();
+
+    try {
+      await _repository.logout();
+    } catch (e) {
+      LoggingService.instance
+          .warning('Logout API call failed, continuing with local cleanup: $e');
+    }
+
     state = const AsyncValue.data(null);
+
     // Invalidate the initial auth check so it will re-check on next login
     _ref.invalidate(checkInitialAuthProvider);
-    LoggingService.instance.info('Logout successful');
+
+    // Invalidate all feature providers to clear stale cached data
+    _ref.invalidate(chatProvider);
+    _ref.invalidate(profileProvider);
+    _ref.invalidate(myRecipesProvider);
+    _ref.invalidate(cameraProvider);
+
+    // Clear all Hive boxes to remove cached offline data
+    await _clearHiveBoxes();
+
+    LoggingService.instance.info('Logout successful - all cached data cleared');
+  }
+
+  /// Clear all Hive boxes to remove offline cached data
+  Future<void> _clearHiveBoxes() async {
+    try {
+      // Clear chat storage
+      if (Hive.isBoxOpen('chat_storage')) {
+        final chatBox = Hive.box('chat_storage');
+        await chatBox.clear();
+        LoggingService.instance.info('Cleared chat_storage box');
+      }
+
+      // Clear recipe storage
+      if (Hive.isBoxOpen('recipe_storage')) {
+        final recipeBox = Hive.box('recipe_storage');
+        await recipeBox.clear();
+        LoggingService.instance.info('Cleared recipe_storage box');
+      }
+    } catch (e) {
+      LoggingService.instance.warning('Error clearing Hive boxes: $e');
+    }
   }
 }

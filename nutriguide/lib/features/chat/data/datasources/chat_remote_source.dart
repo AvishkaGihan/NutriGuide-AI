@@ -75,6 +75,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
             } else if (data['conversationId'] != null) {
               // Yield metadata if needed, or just ignore
             }
+            // Ignore parse errors for keep-alive or malformed lines
           } catch (e) {
             // Ignore parse errors for keep-alive or malformed lines
           }

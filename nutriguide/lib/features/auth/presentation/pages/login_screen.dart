@@ -28,9 +28,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to Auth State changes for Error handling
+    // Listen to Auth State changes for navigation and error handling
     ref.listen(authProvider, (previous, next) {
       next.whenOrNull(
+        data: (user) {
+          if (user != null) {
+            // Navigate to home when login succeeds
+            Navigator.of(context)
+                .pushNamedAndRemoveUntil('/', (route) => false);
+          }
+        },
         error: (error, stack) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
