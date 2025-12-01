@@ -122,7 +122,12 @@ class ApiService {
     }
 
     request.files.add(
-      http.MultipartFile.fromBytes('file', imageBytes, filename: filename),
+      http.MultipartFile.fromBytes(
+        'file',
+        imageBytes,
+        filename: filename,
+        contentType: http.MediaType('image', 'jpeg'),
+      ),
     );
 
     _logger.debug('UPLOAD $uri');

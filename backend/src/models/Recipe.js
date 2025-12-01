@@ -15,6 +15,7 @@ class RecipeModel {
       cook_time_minutes,
       dietary_tags, // Array of strings
       allergen_warnings, // Array of strings
+      image_url, // URL to recipe image
       source = "gemini_generated",
     } = recipeData;
 
@@ -22,10 +23,10 @@ class RecipeModel {
       INSERT INTO recipes (
         user_id, name, ingredients, instructions, nutrition,
         prep_time_minutes, cook_time_minutes, dietary_tags,
-        allergen_warnings, source
+        allergen_warnings, image_url, source
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING id, name, created_at
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING id, name, created_at, image_url
     `;
 
     const values = [
@@ -38,6 +39,7 @@ class RecipeModel {
       cook_time_minutes,
       dietary_tags,
       allergen_warnings,
+      image_url,
       source,
     ];
 

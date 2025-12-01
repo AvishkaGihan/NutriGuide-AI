@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS recipes (
   cook_time_minutes INT,
   dietary_tags TEXT[],
   allergen_warnings TEXT[],
+  image_url VARCHAR(500),
   source VARCHAR(50) DEFAULT 'gemini_generated',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

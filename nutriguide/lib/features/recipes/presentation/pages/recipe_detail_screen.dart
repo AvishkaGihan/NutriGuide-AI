@@ -44,7 +44,17 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               background: Container(
                 color: Colors.grey[300],
                 child: recipe.imageUrl != null
-                    ? Image.network(recipe.imageUrl!, fit: BoxFit.cover)
+                    ? Image.network(
+                        recipe.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.restaurant,
+                                size: 80, color: Colors.grey),
+                          );
+                        },
+                      )
                     : const Icon(Icons.restaurant,
                         size: 80, color: Colors.grey),
               ),

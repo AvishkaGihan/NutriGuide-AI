@@ -36,6 +36,7 @@ class GeminiService {
   /**
    * Generate a recipe based on chat context or ingredients.
    * Enforces JSON output for consistent app rendering.
+   * Includes image search query that gets converted to a working URL.
    */
   static async generateRecipe({
     userProfile,
@@ -58,18 +59,40 @@ class GeminiService {
       : `Suggest a recipe based on this request: "${promptType}"`;
 
     const formatPrompt = `
-      Response MUST be valid JSON with this structure:
+      Response MUST be valid JSON with this EXACT structure. Use real, realistic values:
       {
         "name": "Recipe Name",
         "description": "Brief appetizing description",
-        "ingredients": [{"name": "item", "quantity": "amount", "unit": "unit"}],
-        "instructions": ["Step 1", "Step 2"],
-        "nutrition_estimates": {"calories": 0, "protein_g": 0, "carbs_g": 0, "fat_g": 0},
-        "prep_time_minutes": 0,
-        "cook_time_minutes": 0,
-        "dietary_tags": ["High Protein", "Vegan", etc]
+        "ingredients": [
+          {"name": "chicken breast", "quantity": "200", "unit": "grams"},
+          {"name": "broccoli", "quantity": "2", "unit": "cups"}
+        ],
+        "instructions": [
+          "Preheat oven to 400F",
+          "Season chicken with salt and pepper",
+          "Bake for 20-25 minutes until cooked through"
+        ],
+        "nutrition_estimates": {
+          "calories": 350,
+          "protein_g": 45,
+          "carbs_g": 15,
+          "fat_g": 12
+        },
+        "prep_time_minutes": 15,
+        "cook_time_minutes": 25,
+        "dietary_tags": ["High Protein", "Gluten Free"],
+        "image_keyword": "pizza"
       }
-      IMPORTANT: Ensure recipe strictly follows user allergies/restrictions.
+
+      CRITICAL REQUIREMENTS:
+      - calories MUST be a realistic number between 200-1000 (NEVER 0)
+      - protein_g, carbs_g, fat_g MUST be realistic positive numbers (NEVER 0)
+      - prep_time_minutes and cook_time_minutes MUST be realistic positive integers (NEVER 0)
+      - ingredients array MUST contain 5+ items with realistic quantities and units
+      - instructions array MUST contain 5+ clear, numbered steps
+      - dietary_tags MUST list relevant tags (Vegan, Gluten Free, High Protein, etc)
+      - image_keyword MUST be ONE of these ONLY: pizza, burger, pasta, biryani, dessert, dosa, idly, rice, samosa, butter-chicken
+      - Ensure recipe strictly follows user allergies/restrictions
     `;
 
     try {
@@ -85,9 +108,26 @@ class GeminiService {
         .replace(/```/g, "")
         .trim();
 
-      return JSON.parse(cleanJson);
+      const recipe = JSON.parse(cleanJson);
+
+      // Generate a food image URL using Foodish API with recipe-specific keyword
+      // This provides actual food photos that match the recipe
+      if (!recipe.image_url) {
+        let imageKeyword = recipe.image_keyword || "food";
+        // Clean up the keyword: remove spaces, convert to lowercase
+        imageKeyword = imageKeyword.toLowerCase().replace(/\s+/g, "-");
+        // Use the image_keyword to get relevant images
+        recipe.image_url = `https://foodish-api.com/images/${imageKeyword}/${imageKeyword}${
+          Math.floor(Math.random() * 10) + 1
+        }.jpg`;
+      }
+      delete recipe.image_keyword; // Remove keyword after using it
+
+      return recipe;
     } catch (error) {
-      console.error("Gemini Recipe Generation Error:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Gemini Recipe Generation Error:", error);
+      }
       throw new AppError("Failed to generate recipe. Please try again.", 502);
     }
   }
@@ -125,7 +165,9 @@ class GeminiService {
         .trim();
       return JSON.parse(cleanJson);
     } catch (error) {
-      console.error("Gemini Vision Error:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Gemini Vision Error:", error);
+      }
       throw new AppError("Failed to recognize ingredients in photo.", 502);
     }
   }
