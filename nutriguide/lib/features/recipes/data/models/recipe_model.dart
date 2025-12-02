@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:nutriguide/features/recipes/domain/entities/recipe.dart';
 
 class RecipeModel extends Recipe {
@@ -17,25 +18,78 @@ class RecipeModel extends Recipe {
   });
 
   factory RecipeModel.fromJson(Map<String, dynamic> json) {
+    // Helper function to parse ingredients - could be List or JSON string
+    List<IngredientModel> parseIngredients(dynamic ingredientsData) {
+      if (ingredientsData == null) return [];
+
+      List<dynamic> ingredientsList;
+      if (ingredientsData is String) {
+        // Parse JSON string
+        ingredientsList = jsonDecode(ingredientsData) as List<dynamic>;
+      } else if (ingredientsData is List) {
+        ingredientsList = ingredientsData;
+      } else {
+        return [];
+      }
+
+      return ingredientsList
+          .map((e) {
+            if (e is Map<String, dynamic>) {
+              return IngredientModel.fromJson(e);
+            } else if (e is Map) {
+              return IngredientModel.fromJson(Map<String, dynamic>.from(e));
+            }
+            return null;
+          })
+          .whereType<IngredientModel>()
+          .toList();
+    }
+
+    // Helper function to parse instructions - could be List or JSON string
+    List<String> parseInstructions(dynamic instructionsData) {
+      if (instructionsData == null) return [];
+
+      List<dynamic> instructionsList;
+      if (instructionsData is String) {
+        // Parse JSON string
+        instructionsList = jsonDecode(instructionsData) as List<dynamic>;
+      } else if (instructionsData is List) {
+        instructionsList = instructionsData;
+      } else {
+        return [];
+      }
+
+      return instructionsList.map((e) => e.toString()).toList();
+    }
+
+    // Helper function to parse nutrition - could be Map or JSON string
+    Map<String, dynamic> parseNutrition(dynamic nutritionData) {
+      if (nutritionData == null) return {};
+
+      if (nutritionData is String) {
+        return jsonDecode(nutritionData) as Map<String, dynamic>;
+      } else if (nutritionData is Map<String, dynamic>) {
+        return nutritionData;
+      } else if (nutritionData is Map) {
+        return Map<String, dynamic>.from(nutritionData);
+      }
+
+      return {};
+    }
+
     return RecipeModel(
-      id: json['id'] as String? ?? '', // Fallback for stability
+      id: json['id']?.toString() ??
+          '', // Convert to String, fallback for stability
       name: json['name'] as String? ?? 'Untitled Recipe',
 
-      // Parse Ingredients List
-      ingredients: (json['ingredients'] as List<dynamic>?)
-              ?.map((e) => IngredientModel.fromJson(e))
-              .toList() ??
-          [],
+      // Parse Ingredients List (handle both JSON string and List)
+      ingredients: parseIngredients(json['ingredients']),
 
-      // Parse Instructions List
-      instructions: (json['instructions'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+      // Parse Instructions List (handle both JSON string and List)
+      instructions: parseInstructions(json['instructions']),
 
-      // Parse Nested Nutrition Object
-      nutrition: NutritionModel.fromJson(
-          json['nutrition'] as Map<String, dynamic>? ?? {}),
+      // Parse Nested Nutrition Object (handle both JSON string and Map)
+      nutrition: NutritionModel.fromJson(parseNutrition(json['nutrition'])),
 
       prepTimeMinutes: json['prep_time_minutes'] as int? ?? 0,
       cookTimeMinutes: json['cook_time_minutes'] as int? ?? 0,
@@ -87,7 +141,7 @@ class IngredientModel extends Ingredient {
 
   factory IngredientModel.fromJson(Map<String, dynamic> json) {
     return IngredientModel(
-      name: json['name'] as String,
+      name: json['name'] as String? ?? '',
       quantity: json['quantity']?.toString(), // Handle number or string
       unit: json['unit'] as String?,
     );

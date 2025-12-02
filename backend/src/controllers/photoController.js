@@ -172,7 +172,6 @@ export const analyzePhoto = asyncHandler(async (req, res, next) => {
           nutrition: enrichedRecipe.nutrition_estimates,
           prep_time_minutes: enrichedRecipe.prep_time_minutes,
           cook_time_minutes: enrichedRecipe.cook_time_minutes,
-          servings: enrichedRecipe.servings || 1,
           dietary_tags: enrichedRecipe.dietary_tags,
           allergen_warnings: allergenWarnings,
           image_url: enrichedRecipe.image_url,

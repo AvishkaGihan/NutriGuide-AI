@@ -62,9 +62,10 @@ export const generateVariation = asyncHandler(async (req, res, next) => {
     promptType: prompt,
   });
 
-  // Save the new variation
+  // Save the new variation - normalize nutrition_estimates to nutrition
   const savedVariation = await RecipeModel.create({
     ...newRecipeData,
+    nutrition: newRecipeData.nutrition_estimates,
     user_id: req.user.id,
   });
 
@@ -76,7 +77,6 @@ export const generateVariation = asyncHandler(async (req, res, next) => {
     nutrition: newRecipeData.nutrition_estimates,
     prep_time_minutes: newRecipeData.prep_time_minutes,
     cook_time_minutes: newRecipeData.cook_time_minutes,
-    servings: newRecipeData.servings || 1,
     dietary_tags: newRecipeData.dietary_tags,
     allergen_warnings: newRecipeData.allergen_warnings,
   };

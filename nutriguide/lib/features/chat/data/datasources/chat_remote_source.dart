@@ -68,11 +68,13 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
 
       // Process the SSE Stream
       // We parse line by line: "event: ...", "data: ..."
+      String? currentEvent;
       await for (final line in response.stream
           .transform(utf8.decoder)
           .transform(const LineSplitter())) {
-        if (line.startsWith('event: token')) {
-          // It's a token line, wait for the next data line
+        if (line.startsWith('event: ')) {
+          // Track the current event type
+          currentEvent = line.substring(7).trim(); // Remove "event: "
           continue;
         } else if (line.startsWith('data: ')) {
           final dataString = line.substring(6); // Remove "data: "
@@ -81,8 +83,13 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
           try {
             final data = jsonDecode(dataString);
 
-            // Check content type based on previous event or inferred structure
-            if (data['text'] != null) {
+            // Skip status events - they are just UI hints, not content
+            if (currentEvent == 'status') {
+              continue;
+            }
+
+            // Process token events - these are the actual content
+            if (currentEvent == 'token' && data['text'] != null) {
               yield data['text'] as String; // Yield the token string
             } else if (data['recipe'] != null) {
               // Yield the full recipe at the end if present
@@ -97,13 +104,14 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
                     ? RecipeModel.fromJson(data['recipe'])
                     : null,
               );
-            } else if (data['conversationId'] != null) {
-              // Yield metadata if needed, or just ignore
             }
             // Ignore parse errors for keep-alive or malformed lines
           } catch (e) {
             // Ignore parse errors for keep-alive or malformed lines
           }
+
+          // Reset current event after processing data
+          currentEvent = null;
         }
       }
     } catch (e) {

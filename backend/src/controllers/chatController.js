@@ -52,9 +52,10 @@ export const streamMessage = asyncHandler(async (req, res) => {
         promptType: message,
       });
 
-      // Save Recipe to DB
+      // Save Recipe to DB - normalize nutrition_estimates to nutrition
       const savedRecipe = await RecipeModel.create({
         ...recipe,
+        nutrition: recipe.nutrition_estimates, // Map nutrition_estimates to nutrition
         user_id: userId,
       });
 
@@ -66,7 +67,6 @@ export const streamMessage = asyncHandler(async (req, res) => {
         nutrition: recipe.nutrition_estimates,
         prep_time_minutes: recipe.prep_time_minutes,
         cook_time_minutes: recipe.cook_time_minutes,
-        servings: recipe.servings || 1,
         dietary_tags: recipe.dietary_tags,
         allergen_warnings: recipe.allergen_warnings,
       };

@@ -14,17 +14,29 @@ class ChatMessageModel extends ChatMessage {
     // Parse nested recipe if available
     RecipeModel? recipe;
     if (json['recipe'] != null) {
-      recipe = RecipeModel.fromJson(json['recipe']);
+      // Handle recipe as Map
+      if (json['recipe'] is Map<String, dynamic>) {
+        recipe = RecipeModel.fromJson(json['recipe'] as Map<String, dynamic>);
+      } else if (json['recipe'] is Map) {
+        recipe = RecipeModel.fromJson(
+            Map<String, dynamic>.from(json['recipe'] as Map));
+      }
     } else if (json['recipe_attached'] != null) {
       // Handle potential API naming variation
-      recipe = RecipeModel.fromJson(json['recipe_attached']);
+      if (json['recipe_attached'] is Map<String, dynamic>) {
+        recipe = RecipeModel.fromJson(
+            json['recipe_attached'] as Map<String, dynamic>);
+      } else if (json['recipe_attached'] is Map) {
+        recipe = RecipeModel.fromJson(
+            Map<String, dynamic>.from(json['recipe_attached'] as Map));
+      }
     }
 
     return ChatMessageModel(
-      id: json['id'] as String? ??
+      id: json['id']?.toString() ??
           DateTime.now()
               .millisecondsSinceEpoch
-              .toString(), // Fallback ID if missing
+              .toString(), // Convert to String and provide fallback
       role: _parseRole(json['role']),
       content: json['content'] as String? ?? '',
       timestamp: json['created_at'] != null
