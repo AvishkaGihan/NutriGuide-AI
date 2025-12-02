@@ -58,7 +58,18 @@ export const streamMessage = asyncHandler(async (req, res) => {
         user_id: userId,
       });
 
-      recipeData = savedRecipe;
+      // Include full recipe data for the frontend
+      recipeData = {
+        ...savedRecipe,
+        ingredients: recipe.ingredients,
+        instructions: recipe.instructions,
+        nutrition: recipe.nutrition_estimates,
+        prep_time_minutes: recipe.prep_time_minutes,
+        cook_time_minutes: recipe.cook_time_minutes,
+        servings: recipe.servings || 1,
+        dietary_tags: recipe.dietary_tags,
+        allergen_warnings: recipe.allergen_warnings,
+      };
       aiResponseText = `Here is a recipe for ${recipe.name}.`;
     } else {
       // General chat - use Gemini for all questions

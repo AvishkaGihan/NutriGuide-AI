@@ -33,32 +33,32 @@ class RecipeCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image with full width and proper aspect ratio
-            Container(
-              width: double.infinity,
-              height: 180,
-              decoration: BoxDecoration(
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Container(
+                width: double.infinity,
+                height: 180,
                 color: Colors.grey[200],
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+                child: recipe.imageUrl != null
+                    ? Image.network(
+                        recipe.imageUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 180,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                                child: Icon(Icons.restaurant,
+                                    color: Colors.grey, size: 40)),
+                          );
+                        },
+                      )
+                    : const Center(
+                        child: Icon(Icons.restaurant,
+                            color: Colors.grey, size: 40)),
               ),
-              child: recipe.imageUrl != null
-                  ? Image.network(
-                      recipe.imageUrl!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: 180,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[200],
-                          child: const Center(
-                              child: Icon(Icons.restaurant,
-                                  color: Colors.grey, size: 40)),
-                        );
-                      },
-                    )
-                  : const Center(
-                      child:
-                          Icon(Icons.restaurant, color: Colors.grey, size: 40)),
             ),
 
             Padding(

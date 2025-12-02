@@ -62,7 +62,7 @@ class RecipeModel {
    */
   static async findByUserId(userId, limit = 20) {
     const query = `
-      SELECT id, name, nutrition, prep_time_minutes, dietary_tags, created_at
+      SELECT id, name, nutrition, prep_time_minutes, cook_time_minutes, dietary_tags, image_url, created_at
       FROM recipes
       WHERE user_id = $1
       ORDER BY created_at DESC

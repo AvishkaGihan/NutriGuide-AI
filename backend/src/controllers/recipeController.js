@@ -68,8 +68,21 @@ export const generateVariation = asyncHandler(async (req, res, next) => {
     user_id: req.user.id,
   });
 
+  // Include full recipe data in response
+  const fullRecipeData = {
+    ...savedVariation,
+    ingredients: newRecipeData.ingredients,
+    instructions: newRecipeData.instructions,
+    nutrition: newRecipeData.nutrition_estimates,
+    prep_time_minutes: newRecipeData.prep_time_minutes,
+    cook_time_minutes: newRecipeData.cook_time_minutes,
+    servings: newRecipeData.servings || 1,
+    dietary_tags: newRecipeData.dietary_tags,
+    allergen_warnings: newRecipeData.allergen_warnings,
+  };
+
   res.status(201).json({
     success: true,
-    data: savedVariation,
+    data: fullRecipeData,
   });
 });

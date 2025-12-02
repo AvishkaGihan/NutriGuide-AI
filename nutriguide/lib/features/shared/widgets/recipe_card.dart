@@ -34,23 +34,30 @@ class SharedRecipeCard extends StatelessWidget {
         child: Column(
           children: [
             // Image
-            Container(
-              height: 150,
-              decoration: BoxDecoration(
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Container(
+                height: 150,
                 color: Colors.grey[200],
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
-                image: recipe.imageUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(recipe.imageUrl!),
-                        fit: BoxFit.cover)
-                    : null,
+                child: recipe.imageUrl != null
+                    ? Image.network(
+                        recipe.imageUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                                child: Icon(Icons.restaurant_menu,
+                                    size: 40, color: Colors.grey)),
+                          );
+                        },
+                      )
+                    : const Center(
+                        child: Icon(Icons.restaurant_menu,
+                            size: 40, color: Colors.grey)),
               ),
-              child: recipe.imageUrl == null
-                  ? const Center(
-                      child: Icon(Icons.restaurant_menu,
-                          size: 40, color: Colors.grey))
-                  : null,
             ),
 
             Padding(
