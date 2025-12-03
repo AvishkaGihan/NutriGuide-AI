@@ -1,5 +1,6 @@
 import { config } from "../config/env.js";
 import { formatErrorResponse } from "../utils/errorHandler.js";
+import { logger } from "../services/loggerService.js";
 
 /**
  * Global Error Handling Middleware.
@@ -10,13 +11,12 @@ export const globalErrorHandler = (err, req, res, _next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
-  // 1. Log the error for debugging
+  // 1. Log the error for debugging and monitoring
   // In production, you might want to send this to a service like Sentry or Datadog
   if (config.env === "development" || err.statusCode === 500) {
-    console.error("🔥 ERROR LOG:", {
-      message: err.message,
-      stack: err.stack,
-      url: req.originalUrl,
+    logger.error(`Error in ${req.method} ${req.originalUrl}`, err, {
+      statusCode: err.statusCode,
+      path: req.originalUrl,
       method: req.method,
     });
   }

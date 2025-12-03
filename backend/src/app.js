@@ -4,6 +4,7 @@ import helmet from "helmet";
 import { config } from "./config/env.js";
 import { checkDatabaseHealth } from "./config/database.js";
 import { requestLogger } from "./middleware/logging.js";
+import { logger } from "./services/loggerService.js";
 import {
   globalErrorHandler,
   notFoundHandler,
@@ -69,20 +70,21 @@ app.use(globalErrorHandler);
 // Only start if this file is run directly (not imported for testing)
 if (process.env.NODE_ENV !== "test") {
   app.listen(config.port, async () => {
-    console.log(
-      `\n🚀 NutriGuide Server running in ${config.env} mode on port ${config.port}`
+    logger.info(
+      `NutriGuide Server running in ${config.env} mode on port ${config.port}`,
+      {
+        port: config.port,
+        env: config.env,
+      }
     );
-    console.log(`➜  Health Check: http://localhost:${config.port}/health`);
-    console.log(
-      `➜  API Base:     http://localhost:${config.port}${config.apiPrefix}`
-    );
+    logger.info(`Health Check: http://localhost:${config.port}/health`);
+    logger.info(`API Base: http://localhost:${config.port}${config.apiPrefix}`);
 
     // Check DB Connection on startup
     const dbStatus = await checkDatabaseHealth();
-    console.log(
-      `📦 Database:     ${
-        dbStatus.status === "healthy" ? "Connected ✅" : "Failed ❌"
-      }`
+    logger.info(
+      `Database: ${dbStatus.status === "healthy" ? "Connected" : "Failed"}`,
+      { dbStatus: dbStatus.status }
     );
   });
 }

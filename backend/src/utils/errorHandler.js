@@ -1,3 +1,5 @@
+import { logger } from "../services/loggerService.js";
+
 /**
  * Custom Error Class for Operational Errors.
  * Used to distinguish between programming bugs (Crash) and expected errors (404, 400).
@@ -63,7 +65,8 @@ export const formatErrorResponse = (err, environment = "development") => {
   }
 
   // Programming or other unknown error: don't leak details
-  console.error("ERROR 💥", err); // Log to server console/Cloud Logging
+  // Log it server-side for monitoring
+  logger.error("Unhandled error detected", err);
   return {
     status: "error",
     message: "Something went wrong. Please try again later.",

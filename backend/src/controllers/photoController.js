@@ -4,6 +4,7 @@ import UserModel from "../models/User.js";
 import GeminiService from "../services/geminiService.js";
 import NutritionService from "../services/nutritionService.js";
 import { asyncHandler, AppError } from "../utils/errorHandler.js";
+import { logger } from "../services/loggerService.js";
 
 /**
  * Validate recipe data to ensure it has real values
@@ -109,15 +110,10 @@ export const analyzePhoto = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
 
   // 1. Analyze Image with Gemini Vision to detect ingredients
-  const ingredientsDetected = await GeminiService.analyzeImage(
-    req.file.buffer,
-    req.file.mimetype
-  );
+  const ingredientsDetected = await GeminiService.analyzeImage(req.file.buffer, req.file.mimetype);
 
   if (!ingredientsDetected || ingredientsDetected.length === 0) {
-    return next(
-      new AppError("No ingredients detected. Please try a clearer photo.", 422)
-    );
+    return next(new AppError("No ingredients detected. Please try a clearer photo.", 422));
   }
 
   // 2. Save Photo Metadata
@@ -138,17 +134,18 @@ export const analyzePhoto = asyncHandler(async (req, res, next) => {
 
   // 4. Validate and enrich recipe data
   const validationIssues = validateRecipeData(recipe);
-  if (validationIssues.length > 0 && process.env.NODE_ENV === "development") {
-    console.log("Recipe validation issues:", validationIssues);
+  if (validationIssues.length > 0) {
+    // Log validation issues for debugging purposes
+    logger.debug("Recipe validation issues detected", {
+      issueCount: validationIssues.length,
+      issues: validationIssues,
+    });
   }
 
   const enrichedRecipe = enrichRecipeData(recipe, ingredientsDetected);
 
   // 5. Check for allergens and add warnings
-  const allergenWarnings = NutritionService.checkAllergens(
-    enrichedRecipe,
-    userProfile.allergies
-  );
+  const allergenWarnings = NutritionService.checkAllergens(enrichedRecipe, userProfile.allergies);
   enrichedRecipe.allergen_warnings = allergenWarnings;
 
   // 6. Save Generated Recipe

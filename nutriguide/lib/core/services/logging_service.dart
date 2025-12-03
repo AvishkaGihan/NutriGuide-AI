@@ -11,9 +11,8 @@ class LoggingService {
       {LogLevel level = LogLevel.info, Object? error, StackTrace? stackTrace}) {
     final prefix = _getPrefix(level);
 
-    // In production, we would filter sensitive PII here before sending to a remote service.
-    // For MVP/Debug, we print to console.
-
+    // We use dart:developer instead of print() to ensure logs are properly captured by
+    // Firebase Crashlytics and other production monitoring services in the future.
     dev.log(
       '[$prefix] $message',
       time: DateTime.now(),

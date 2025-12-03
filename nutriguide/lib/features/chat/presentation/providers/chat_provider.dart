@@ -53,13 +53,15 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<ChatMessage>>> {
 
   Future<void> sendMessage(String text) async {
     // We don't manually add the user message here because the repository stream
-    // yields it as the first event (Optimistic UI pattern handled in Repo).
+    // yields it as the first event (Optimistic UI pattern - reduces latency).
 
     // Listen to the stream
     final stream = _repository.sendMessage(text);
-    bool aiMessageStarted =
-        false; // Track if we've started receiving AI response tokens
-    String tempAiMessageId = ''; // Track the temp AI message ID
+    // Track if we've started receiving AI response tokens so we know whether to
+    // create a new placeholder message or append to an existing one.
+    bool aiMessageStarted = false;
+    // Track the temp AI message ID so we can replace the placeholder with the final message.
+    String tempAiMessageId = '';
 
     await for (final result in stream) {
       result.fold(
@@ -78,7 +80,9 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<ChatMessage>>> {
               // User message - add it
               messages.add(msg);
             } else {
-              // AI message - replace the temp placeholder if it exists
+              // AI message - replace the temp placeholder if it exists.
+              // We use a placeholder during streaming to show the "typing" effect to the user,
+              // then replace it with the complete message when the stream finishes.
               if (aiMessageStarted && tempAiMessageId.isNotEmpty) {
                 final existingIndex =
                     messages.indexWhere((m) => m.id == tempAiMessageId);
@@ -100,6 +104,7 @@ class ChatNotifier extends StateNotifier<AsyncValue<List<ChatMessage>>> {
             state = AsyncValue.data(messages);
           } else if (streamResult.token != null) {
             // Streaming token update - append to the last message (AI is typing)
+            // This creates a smooth, natural "typing" effect in the UI as we receive each token from the server.
             if (messages.isNotEmpty && !messages.last.isUser) {
               // Continue updating existing AI message
               final lastMsg = messages.last;

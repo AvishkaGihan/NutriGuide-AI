@@ -1,5 +1,6 @@
 import axios from "axios";
 import { AppError } from "../utils/errorHandler.js";
+import { logger } from "./loggerService.js";
 
 // Placeholder for USDA API URL
 const USDA_API_URL = "https://api.nal.usda.gov/fdc/v1/foods/search";
@@ -71,7 +72,7 @@ class NutritionService {
       });
       return response.data.foods[0];
     } catch (_error) {
-      console.error("USDA API Error:", _error);
+      logger.error("Failed to fetch ingredient info from USDA API", _error);
       throw new AppError("Failed to fetch ingredient info from USDA API", 500);
     }
   }

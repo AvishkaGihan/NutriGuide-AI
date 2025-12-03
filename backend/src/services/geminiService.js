@@ -1,5 +1,6 @@
 import { getChatModel, getVisionModel } from "../config/gemini.js";
 import { AppError } from "../utils/errorHandler.js";
+import { logger } from "./loggerService.js";
 
 class GeminiService {
   /**
@@ -9,6 +10,8 @@ class GeminiService {
   static async generateChatResponse({ userProfile, message }) {
     const model = getChatModel();
 
+    // We include user profile context in every prompt so the AI understands dietary restrictions
+    // and preferences, making responses personalized and relevant to their health goals.
     const basePrompt = `
       You are NutriGuide, a helpful nutritionist and cooking assistant.
       User Profile:
@@ -21,14 +24,12 @@ class GeminiService {
     `;
 
     try {
-      const result = await model.generateContent(
-        `${basePrompt}\n\nUser: ${message}`
-      );
+      const result = await model.generateContent(`${basePrompt}\n\nUser: ${message}`);
       const response = await result.response;
       const text = response.text();
       return text;
     } catch (error) {
-      console.error("Gemini Chat Response Error:", error);
+      logger.error("Failed to generate chat response from Gemini", error);
       throw new AppError("Failed to generate response. Please try again.", 502);
     }
   }
@@ -38,14 +39,11 @@ class GeminiService {
    * Enforces JSON output for consistent app rendering.
    * Includes image search query that gets converted to a working URL.
    */
-  static async generateRecipe({
-    userProfile,
-    ingredients,
-    promptType = "suggest",
-  }) {
+  static async generateRecipe({ userProfile, ingredients, promptType = "suggest" }) {
     const model = getChatModel();
 
-    // Construct the context-aware prompt
+    // We include user profile context so recipes respect dietary goals and allergies,
+    // ensuring we never suggest recipes that conflict with their health profile.
     const basePrompt = `
       You are NutriGuide, an expert nutritionist and chef.
       User Profile:
@@ -58,6 +56,8 @@ class GeminiService {
       ? `Create a recipe using these ingredients: ${ingredients.join(", ")}.`
       : `Suggest a recipe based on this request: "${promptType}"`;
 
+    // We enforce strict JSON structure to ensure the frontend can reliably parse and render
+    // recipe cards without additional validation. This reduces error handling complexity in the app.
     const formatPrompt = `
       Response MUST be valid JSON with this EXACT structure. Use real, realistic values:
       {
@@ -96,13 +96,12 @@ class GeminiService {
     `;
 
     try {
-      const result = await model.generateContent(
-        `${basePrompt}\n${taskPrompt}\n${formatPrompt}`
-      );
+      const result = await model.generateContent(`${basePrompt}\n${taskPrompt}\n${formatPrompt}`);
       const response = await result.response;
       const text = response.text();
 
       // Clean up markdown code blocks if Gemini includes them (e.g. ```json ... ```)
+      // This is necessary because Gemini sometimes wraps JSON in backticks even with strict formatting prompts.
       const cleanJson = text
         .replace(/```json/g, "")
         .replace(/```/g, "")
@@ -110,7 +109,8 @@ class GeminiService {
 
       const recipe = JSON.parse(cleanJson);
 
-      // Validate and fix any zero/invalid time values
+      // Validate and fix any zero/invalid time values because Gemini sometimes generates
+      // unrealistic cooking times. This safeguard ensures recipes are practical and safe to follow.
       if (!recipe.prep_time_minutes || recipe.prep_time_minutes <= 0) {
         recipe.prep_time_minutes = 10; // Default to 10 minutes
       }
@@ -118,8 +118,8 @@ class GeminiService {
         recipe.cook_time_minutes = 20; // Default to 20 minutes
       }
 
-      // Generate a food image URL using Foodish API with recipe-specific keyword
-      // This provides actual food photos that match the recipe
+      // Generate a food image URL using Foodish API with recipe-specific keyword.
+      // We randomize the image number to show variety when users refresh or request similar recipes.
       if (!recipe.image_url) {
         let imageKeyword = recipe.image_keyword || "food";
         // Clean up the keyword: remove spaces, convert to lowercase
@@ -133,9 +133,7 @@ class GeminiService {
 
       return recipe;
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Gemini Recipe Generation Error:", error);
-      }
+      logger.error("Failed to generate recipe from Gemini", error);
       throw new AppError("Failed to generate recipe. Please try again.", 502);
     }
   }
@@ -173,9 +171,7 @@ class GeminiService {
         .trim();
       return JSON.parse(cleanJson);
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Gemini Vision Error:", error);
-      }
+      logger.error("Failed to analyze image with Gemini Vision", error);
       throw new AppError("Failed to recognize ingredients in photo.", 502);
     }
   }

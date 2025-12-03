@@ -1,5 +1,6 @@
 import pg from "pg";
 import { config } from "./env.js";
+import { logger } from "../services/loggerService.js";
 
 const { Pool } = pg;
 
@@ -13,15 +14,12 @@ const pool = new Pool({
 
 // Event Listener: Successful connection
 pool.on("connect", () => {
-  // Use a debug logger here in real app, console.log used for simplicity in setup
-  if (config.env === "development") {
-    console.log("📦 Database connected successfully");
-  }
+  logger.debug("Database connection pool client initialized");
 });
 
 // Event Listener: Unexpected error on idle client
 pool.on("error", (err) => {
-  console.error("❌ Unexpected error on idle database client", err);
+  logger.error("Critical: Unexpected error on idle database client", err);
   process.exit(-1); // Critical failure, restart process
 });
 

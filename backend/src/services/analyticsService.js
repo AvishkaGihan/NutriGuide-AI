@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { config } from "../config/env.js";
+import { logger } from "./loggerService.js";
 
 class AnalyticsService {
   /**
@@ -11,14 +12,15 @@ class AnalyticsService {
       timestamp: new Date().toISOString(),
       type: eventType,
       // Anonymize User ID for general analytics (privacy first)
+      // This allows us to track feature usage patterns without identifying individuals.
       user_hash: userId ? this.hashPii(userId) : "anonymous",
       metadata: this.sanitizeData(data),
       environment: config.env,
     };
 
     // In production, this would go to Datadog, Mixpanel, or Cloud Logging
-    // For MVP, structured console logging is captured by Docker
-    console.log("[ANALYTICS]", JSON.stringify(event));
+    // For MVP, structured logging is captured by Docker/cloud aggregation services
+    logger.structured("ANALYTICS", eventType, event);
   }
 
   /**
@@ -35,7 +37,7 @@ class AnalyticsService {
       status: status,
     };
 
-    console.log("[AUDIT]", JSON.stringify(auditRecord));
+    logger.structured("AUDIT", action, auditRecord);
   }
 
   /**

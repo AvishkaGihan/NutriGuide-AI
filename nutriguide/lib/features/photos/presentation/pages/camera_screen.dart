@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nutriguide/core/services/logging_service.dart';
 import 'package:nutriguide/core/theme/colors.dart';
 import 'package:nutriguide/features/photos/presentation/providers/camera_provider.dart';
 import 'package:nutriguide/features/photos/presentation/widgets/scan_animation.dart';
@@ -40,7 +41,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
       _controller = CameraController(
         firstCamera,
         ResolutionPreset
-            .medium, // Medium is usually sufficient for ingredient recognition
+            .medium, // Medium resolution is sufficient for ingredient recognition while keeping performance good
         enableAudio: false,
       );
 
@@ -48,8 +49,9 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
       if (!mounted) return;
       setState(() => _isCameraInitialized = true);
     } catch (e) {
-      // Handle camera permission errors
-      debugPrint('Camera error: $e');
+      // We catch camera initialization errors silently (logging instead of crashing)
+      // because permission denials are expected - the UI should gracefully show the gallery option instead.
+      LoggingService.instance.error('Camera initialization failed', e);
     }
   }
 
@@ -71,7 +73,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
       final bytes = await image.readAsBytes();
       await ref.read(cameraProvider.notifier).analyzePhoto(bytes);
     } catch (e) {
-      debugPrint('Error capturing photo: $e');
+      LoggingService.instance.error('Failed to capture photo', e);
     }
   }
 
@@ -83,7 +85,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen> {
         await ref.read(cameraProvider.notifier).analyzePhoto(bytes);
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
+      LoggingService.instance.error('Failed to pick image from gallery', e);
     }
   }
 

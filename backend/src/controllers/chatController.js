@@ -3,10 +3,15 @@ import UserModel from "../models/User.js";
 import GeminiService from "../services/geminiService.js";
 import RecipeModel from "../models/Recipe.js";
 import { asyncHandler } from "../utils/errorHandler.js";
+import { logger } from "../services/loggerService.js";
 
 /**
  * Send a message and stream the response (SSE)
  * POST /api/v1/chat/stream
+ *
+ * We use Server-Sent Events (SSE) instead of WebSockets to show a typing effect
+ * in the UI, making the response feel more natural and interactive while keeping
+ * the backend simpler (no persistent connections needed).
  */
 export const streamMessage = asyncHandler(async (req, res) => {
   const { message, conversationId } = req.body;
@@ -89,9 +94,7 @@ export const streamMessage = asyncHandler(async (req, res) => {
     // Simulate typing effect
     const words = aiResponseText.split(" ");
     for (const word of words) {
-      res.write(
-        `event: token\ndata: ${JSON.stringify({ text: word + " " })}\n\n`
-      );
+      res.write(`event: token\ndata: ${JSON.stringify({ text: word + " " })}\n\n`);
       await new Promise((r) => setTimeout(r, 50)); // Artificial delay for 'typing' feel
     }
 
@@ -116,7 +119,7 @@ export const streamMessage = asyncHandler(async (req, res) => {
 
     res.end();
   } catch (error) {
-    console.error("Chat Stream Error:", error);
+    logger.error("Failed to stream chat response", error);
     res.write(
       `event: error\ndata: ${JSON.stringify({
         message: "Failed to process request",
