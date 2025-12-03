@@ -37,6 +37,7 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_dotenv: ^5.1.0
   jwt_decoder: ^2.0.1
+
   # Path provider often needed for Hive/File storage
   path_provider: ^2.1.4
   fpdart: ^1.2.0
