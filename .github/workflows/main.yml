@@ -12,7 +12,7 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    
+
     # Spin up a temporary PostgreSQL database for integration tests
     services:
       postgres:
@@ -31,12 +31,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
       - name: Install Dependencies
@@ -59,15 +59,15 @@ jobs:
     defaults:
       run:
         working-directory: ./nutriguide
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
+          flutter-version: "3.24.0"
+          channel: "stable"
           cache: true
 
       - name: Install Dependencies
