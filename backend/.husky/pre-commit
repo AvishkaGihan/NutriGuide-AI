@@ -1,0 +1,4 @@
+# This script runs every time you type "git commit"
+echo "Running Backend Tests..."
+cd backend
+npm test
