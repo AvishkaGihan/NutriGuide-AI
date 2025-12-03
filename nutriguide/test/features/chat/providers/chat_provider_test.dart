@@ -6,6 +6,7 @@ import 'package:mockito/mockito.dart';
 import 'package:nutriguide/features/chat/domain/entities/chat_message.dart';
 import 'package:nutriguide/features/chat/domain/repositories/chat_repository.dart';
 import 'package:nutriguide/features/chat/presentation/providers/chat_provider.dart';
+import '../../../helpers/mockito_dummies.dart';
 
 @GenerateMocks([ChatRepository])
 import 'chat_provider_test.mocks.dart'; // Uncomment after running: flutter pub run build_runner build
@@ -13,6 +14,8 @@ import 'chat_provider_test.mocks.dart'; // Uncomment after running: flutter pub 
 void main() {
   late MockChatRepository mockRepository;
   late ProviderContainer container;
+
+  setUpAll(registerMockitoDummies);
 
   setUp(() {
     mockRepository = MockChatRepository();

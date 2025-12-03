@@ -1,0 +1,18 @@
+flutter_native_splash:
+  # Background color (Vitality Green from your theme)
+  color: "#22c55e"
+
+  # The logo image to center on the screen
+  image: "assets/images/splash_logo.png"
+
+  # Android 12+ specific configuration (required for modern phones)
+  android_12:
+    image: "assets/images/splash_logo.png"
+    color: "#22c55e"
+
+  # Support dark mode? (Optional)
+  # color_dark: "#1f2937"
+  # image_dark: "assets/images/splash_logo_white.png"
+
+  # Fullscreen mode
+  fullscreen: true
