@@ -7,9 +7,13 @@ const { Pool } = pg;
 // Initialize the Connection Pool
 const pool = new Pool({
   connectionString: config.db.url,
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Return an error if connection takes > 2 seconds
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000, // Increased for remote connections
+  // Enable SSL if we are connecting to a remote database (like Render)
+  ssl: config.db.url.includes('localhost')
+    ? false
+    : { rejectUnauthorized: false }
 });
 
 // Event Listener: Successful connection
