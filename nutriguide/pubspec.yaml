@@ -53,7 +53,7 @@ dev_dependencies:
   # --- Code Generation ---
   build_runner: ^2.4.11
   riverpod_generator: ^2.4.2
-  custom_lint: ^0.7.6
+  custom_lint: ^0.7.0
   riverpod_lint: ^2.3.10
 
   # --- Testing ---
