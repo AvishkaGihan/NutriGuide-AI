@@ -1,5 +1,7 @@
 # NutriGuide AI 🥑🤖
 
+[![Download App](https://img.shields.io/badge/Download-Android_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AvishkaGihan/NutriGuide-AI/releases/tag/v1.0.0)
+
 **Mobile-First AI Nutrition Assistant**
 
 NutriGuide AI is a cross-platform mobile application that transforms meal planning using Generative AI. It features a conversational nutrition assistant and a "Fridge Scan" feature that uses computer vision to generate recipes based on ingredients you already have.
